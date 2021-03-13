@@ -1,10 +1,10 @@
+import string
 import typing as tp
 
 
 def encrypt_caesar(plaintext: str, shift: int = 3) -> str:
     """
     Encrypts plaintext using a Caesar cipher.
-
     >>> encrypt_caesar("PYTHON")
     'SBWKRQ'
     >>> encrypt_caesar("python")
@@ -15,26 +15,27 @@ def encrypt_caesar(plaintext: str, shift: int = 3) -> str:
     ''
     """
     ciphertext = ""
-    for letter in plaintext:
-        if "A" <= letter <= "Z" or "a" <= letter <= "z":
-            if "A" <= letter <= "Z" and chr(ord(letter) + shift) > "Z":
-                letter = chr(ord(letter) - 26 + shift)
-                ciphertext += letter
-            elif "a" <= letter <= "z" and chr(ord(letter) + shift) > "z":
-                letter = chr(ord(letter) - 26 + shift)
-                ciphertext += letter
+    for a in plaintext:
+        if a != " ":
+            num = string.ascii_uppercase.find(a)
+            if num == -1:
+                num = string.ascii_lowercase.find(a)
+                if num == -1:
+                    ciphertext += a
+                else:
+                    result = (num + shift) % len(string.ascii_lowercase)
+                    ciphertext += string.ascii_lowercase[result]
             else:
-                letter = chr(ord(letter) + shift)
-                ciphertext += letter
+                result = (num + shift) % len(string.ascii_uppercase)
+                ciphertext += string.ascii_uppercase[result]
         else:
-            ciphertext += letter
+            ciphertext += " "
     return ciphertext
 
 
 def decrypt_caesar(ciphertext: str, shift: int = 3) -> str:
     """
     Decrypts a ciphertext using a Caesar cipher.
-
     >>> decrypt_caesar("SBWKRQ")
     'PYTHON'
     >>> decrypt_caesar("sbwkrq")
@@ -45,34 +46,42 @@ def decrypt_caesar(ciphertext: str, shift: int = 3) -> str:
     ''
     """
     plaintext = ""
-    for letter in ciphertext:
-        if "A" <= letter <= "Z" or "a" <= letter <= "z":
-            if "A" <= letter <= "Z" and chr(ord(letter) - shift) < "A":
-                letter = chr(ord(letter) + 26 - shift)
-                plaintext += letter
-            elif "a" <= letter <= "z" and chr(ord(letter) - shift) < "a":
-                letter = chr(ord(letter) + 26 - shift)
-                plaintext += letter
+    for a in ciphertext:
+        if a != " ":
+            num = string.ascii_uppercase.find(a)
+            if num == -1:
+                num = string.ascii_lowercase.find(a)
+                if num == -1:
+                    plaintext += a
+                else:
+                    result = (num - shift) % len(string.ascii_lowercase)
+                    plaintext += string.ascii_lowercase[result]
             else:
-                letter = chr(ord(letter) - shift)
-                plaintext += letter
+                result = (num - shift) % len(string.ascii_uppercase)
+                plaintext += string.ascii_uppercase[result]
         else:
-            plaintext += letter
+            plaintext += " "
     return plaintext
 
 
 def caesar_breaker_brute_force(ciphertext: str, dictionary: tp.Set[str]) -> int:
     """
-    Brute force breaking a Caesar cipher.
+    >>> d = {"python", "java", "ruby"}
+    >>> caesar_breaker_brute_force("python", d)
+    0
+    >>> caesar_breaker_brute_force("sbwkrq", d)
+    3
     """
     best_shift = 0
-     for key in range(len(ciphertext)):
-        translated = ""
-        for symbol in dictionary:
-            if symbol in ciphertext:
-                num = ciphertext.find(symbol)
-                num -= key
-                if num < 0:
-                    num += len(ciphertext)
-                    translated += symbol 
+    max = 0
+    for shift in range(26):
+        count = 0
+        plaintext = decrypt_caesar(ciphertext, shift)
+        words = plaintext.split()
+        for word in words:
+            if word in dictionary:
+                count += 1
+            if count > max:
+                max = count
+                best_shift = shift
     return best_shift
